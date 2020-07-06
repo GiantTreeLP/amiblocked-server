@@ -1,11 +1,9 @@
 package de.gianttree.amiblocked
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.`java-time`.datetime
 
 
 class BlockedUserDTO(
