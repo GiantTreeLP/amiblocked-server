@@ -8,9 +8,12 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
+import io.ktor.features.CachingHeaders
 import io.ktor.features.CallLogging
+import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.CachingOptions
 import io.ktor.http.parametersOf
 import io.ktor.request.ContentTransformationException
 import io.ktor.request.receiveParameters
@@ -32,6 +35,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.time.ExperimentalTime
+import kotlin.time.days
 
 
 val mapper: ObjectMapper = JsonMapper.builder()
@@ -40,6 +45,7 @@ val mapper: ObjectMapper = JsonMapper.builder()
 
 val configPath: Path = Paths.get("config.json")
 
+@ExperimentalTime
 @KtorExperimentalAPI
 fun main() {
 
@@ -63,12 +69,20 @@ fun main() {
         SchemaUtils.createMissingTablesAndColumns(BlockedUsers)
     }
     val server = embeddedServer(CIO, configuration.port, configuration.host) {
+        install(CallLogging)
         install(CORS) {
             configuration.cors.forEach {
                 host(it.host, it.schemes)
             }
         }
-        install(CallLogging)
+        install(CachingHeaders) {
+            options { outgoingContent ->
+                when (outgoingContent.contentType?.withoutParameters()) {
+                    ContentType.Application.Json -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 1.days.inSeconds.toInt()))
+                    else -> null
+                }
+            }
+        }
         routing {
             post("/api/v1/find") {
                 val params = try {
