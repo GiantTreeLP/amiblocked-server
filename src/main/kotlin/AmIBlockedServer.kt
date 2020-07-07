@@ -2,6 +2,7 @@ package de.gianttree.amiblocked
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.call
@@ -24,18 +25,20 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.future.await
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.mapLazy
 import org.jetbrains.exposed.sql.or
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
+import kotlin.time.hours
+import kotlin.time.toJavaDuration
 
 
 val mapper: ObjectMapper = jacksonObjectMapper()
@@ -45,6 +48,7 @@ val configPath: Path = Paths.get("config.json")
 @ExperimentalTime
 @KtorExperimentalAPI
 fun main() {
+
 
     val configuration = if (Files.exists(configPath)) {
         mapper.readValue(configPath.toFile().readBytes(), Configuration::class.java)
@@ -65,6 +69,26 @@ fun main() {
     transaction(database) {
         SchemaUtils.createMissingTablesAndColumns(BlockedUsers)
     }
+
+    val queryCache = Caffeine.newBuilder()
+        .maximumSize(1000)
+        .expireAfterWrite(12.hours.toJavaDuration())
+        .executor(Dispatchers.IO.asExecutor())
+        .buildAsync<String, String> { key ->
+            mapper.writeValueAsString(
+                transaction(database) {
+                    BlockedUser.find {
+                        (BlockedUsers.username eq key) or                       // Full match
+                                //language=RegExp
+                                (BlockedUsers.username regexp "$key#\\d{4}") or // Match without discriminator
+                                (BlockedUsers.snowflake eq key)                 // Match snowflake
+                    }.mapLazy(::BlockedUserDTO).singleOrNull()            // Make sure, only one result is found
+                        ?: BlockedUserDTO.noResult(key)
+                }
+            )
+        }
+
+
     val server = embeddedServer(CIO, configuration.port, configuration.host) {
         install(CallLogging)
         install(CORS) {
@@ -93,19 +117,7 @@ fun main() {
                 }
                 val searchParam = params["search"]!!.trim()
 
-                val response = async(Dispatchers.IO) {
-                    mapper.writeValueAsString(
-                        newSuspendedTransaction {
-                            BlockedUser.find {
-                                (BlockedUsers.username eq searchParam) or                       // Full match
-                                        //language=RegExp
-                                        (BlockedUsers.username regexp "$searchParam#\\d{4}") or // Match without discriminator
-                                        (BlockedUsers.snowflake eq searchParam)                 // Match snowflake
-                            }.mapLazy(::BlockedUserDTO).singleOrNull()            // Make sure, only one result is found
-                                ?: BlockedUserDTO.noResult(searchParam)
-                        }
-                    )
-                }
+                val response = queryCache[searchParam]
 
                 this.call.respondText(response.await(), ContentType.Application.Json)
             }

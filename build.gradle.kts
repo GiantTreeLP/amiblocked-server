@@ -24,6 +24,7 @@ dependencies {
     val mariadbVersion = "2.6.1"
     val hikaricpVersion = "3.4.5"
     val jacksonVersion = "2.11.1"
+    val caffeineVersion = "2.8.5"
 
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
@@ -38,6 +39,7 @@ dependencies {
     implementation("org.slf4j", "slf4j-simple", slf4jVersion)
     implementation("org.mariadb.jdbc", "mariadb-java-client", mariadbVersion)
     implementation("com.zaxxer", "HikariCP", hikaricpVersion)
+    implementation("com.github.ben-manes.caffeine", "caffeine", caffeineVersion)
 }
 
 configure<JavaPluginConvention> {
