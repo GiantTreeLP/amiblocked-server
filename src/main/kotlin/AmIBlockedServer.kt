@@ -63,7 +63,9 @@ fun main() {
     }
     val server = embeddedServer(CIO, configuration.port, configuration.host) {
         install(CORS) {
-            host("blocked-by.gianttree.de", listOf("https"))
+            configuration.cors.forEach {
+                host(it.host, it.schemes)
+            }
         }
         routing {
             post("/api/v1/find") {
