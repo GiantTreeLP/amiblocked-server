@@ -1,8 +1,7 @@
 package de.gianttree.amiblocked
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.call
@@ -39,9 +38,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.days
 
 
-val mapper: ObjectMapper = JsonMapper.builder()
-    .addModule(KotlinModule())
-    .build()
+val mapper: ObjectMapper = jacksonObjectMapper()
 
 val configPath: Path = Paths.get("config.json")
 
