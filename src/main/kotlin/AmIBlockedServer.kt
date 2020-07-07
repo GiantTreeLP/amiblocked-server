@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.mapLazy
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -83,12 +84,7 @@ fun main() {
                             BlockedUser.find {
                                 (BlockedUsers.username eq searchParam) or
                                         (BlockedUsers.snowflake eq searchParam)
-                            }.map(::BlockedUserDTO).firstOrNull() ?: BlockedUserDTO(
-                                searchParam,
-                                "",
-                                "",
-                                false
-                            )
+                            }.mapLazy(::BlockedUserDTO).firstOrNull() ?: BlockedUserDTO.noResult(searchParam)
                         }
                     )
                 }

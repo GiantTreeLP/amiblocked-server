@@ -18,6 +18,15 @@ class BlockedUserDTO(
         blockedUser.note,
         blockedUser.blocked
     )
+
+    companion object {
+        fun noResult(searchParam: String) = BlockedUserDTO(
+            searchParam,
+            "",
+            "",
+            false
+        )
+    }
 }
 
 class BlockedUser(id: EntityID<Int>) : IntEntity(id) {
