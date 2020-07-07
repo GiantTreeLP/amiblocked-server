@@ -4,7 +4,15 @@ data class Configuration(
     val host: String,
     val port: Int,
     val database: DatabaseConfiguration
-)
+) {
+    companion object {
+        fun default() = Configuration(
+            "0.0.0.0",
+            8080,
+            DatabaseConfiguration.default()
+        )
+    }
+}
 
 data class DatabaseConfiguration(
     val jdbcUrl: String,

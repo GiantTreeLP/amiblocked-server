@@ -44,7 +44,7 @@ fun main() {
     val configuration = if (Files.exists(configPath)) {
         mapper.readValue(configPath.toFile().readBytes(), Configuration::class.java)
     } else {
-        Configuration("0.0.0.0", 8080, DatabaseConfiguration.default())
+        Configuration.default()
     }
     mapper.writerWithDefaultPrettyPrinter().writeValue(configPath.toFile(), configuration)
 
