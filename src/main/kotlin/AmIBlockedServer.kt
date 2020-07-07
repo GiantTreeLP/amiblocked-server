@@ -8,6 +8,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
+import io.ktor.features.CallLogging
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.parametersOf
@@ -67,6 +68,7 @@ fun main() {
                 host(it.host, it.schemes)
             }
         }
+        install(CallLogging)
         routing {
             post("/api/v1/find") {
                 val params = try {
