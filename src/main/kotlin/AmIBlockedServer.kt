@@ -100,9 +100,12 @@ fun main() {
                     mapper.writeValueAsString(
                         newSuspendedTransaction {
                             BlockedUser.find {
-                                (BlockedUsers.username eq searchParam) or
-                                        (BlockedUsers.snowflake eq searchParam)
-                            }.mapLazy(::BlockedUserDTO).firstOrNull() ?: BlockedUserDTO.noResult(searchParam)
+                                (BlockedUsers.username eq searchParam) or                       // Full match
+                                        //language=RegExp
+                                        (BlockedUsers.username regexp "$searchParam#\\d{4}") or // Match without discriminator
+                                        (BlockedUsers.snowflake eq searchParam)                 // Match snowflake
+                            }.mapLazy(::BlockedUserDTO).singleOrNull()            // Make sure, only one result is found
+                                ?: BlockedUserDTO.noResult(searchParam)
                         }
                     )
                 }
