@@ -80,7 +80,7 @@ fun main() {
                     BlockedUser.find {
                         (BlockedUsers.username eq key) or                       // Full match
                                 //language=RegExp
-                                (BlockedUsers.username regexp "$key#\\d{4}") or // Match without discriminator
+                                (BlockedUsers.username regexp "^${Regex.escape(key)}#\\d{4}$") or // Match without discriminator
                                 (BlockedUsers.snowflake eq key)                 // Match snowflake
                     }.mapLazy(::BlockedUserDTO).singleOrNull()            // Make sure, only one result is found
                         ?: BlockedUserDTO.noResult(key)
