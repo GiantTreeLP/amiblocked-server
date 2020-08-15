@@ -41,7 +41,7 @@ class BlockedUser(id: EntityID<Int>) : IntEntity(id) {
 }
 
 object BlockedUsers : IntIdTable() {
-    val username = varchar("username", 32 + 1 + 4)
+    val username = varchar("username", 32 + 1 + 4).index()
     val snowflake = varchar("snowflake", 20).uniqueIndex()
     val note = varchar("note", 256)
     val blocked = bool("blocked")
