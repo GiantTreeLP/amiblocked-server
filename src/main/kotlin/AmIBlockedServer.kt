@@ -6,25 +6,16 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.features.CORS
-import io.ktor.features.CachingHeaders
-import io.ktor.features.CallLogging
-import io.ktor.http.CacheControl
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.CachingOptions
-import io.ktor.http.parametersOf
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.request.*
 import io.ktor.request.ContentTransformationException
-import io.ktor.request.receiveParameters
-import io.ktor.response.respond
-import io.ktor.response.respondText
-import io.ktor.routing.post
-import io.ktor.routing.routing
-import io.ktor.server.cio.CIO
-import io.ktor.server.engine.embeddedServer
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.cio.*
+import io.ktor.server.engine.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.future.await
@@ -36,9 +27,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
-import kotlin.time.days
-import kotlin.time.hours
 import kotlin.time.toJavaDuration
 
 
@@ -46,7 +36,6 @@ val mapper: ObjectMapper = jacksonObjectMapper()
 
 val configPath: Path = Paths.get("config.json")
 
-@KtorExperimentalAPI
 @ExperimentalTime
 fun main() {
     AmIBlockedServer().apply { startServer() }
@@ -91,9 +80,9 @@ class AmIBlockedServer {
     private fun createCache(): AsyncLoadingCache<String, String> {
         return Caffeine.newBuilder()
             .maximumSize(1000)
-            .expireAfterWrite(12.hours.toJavaDuration())
+            .expireAfterWrite(Duration.hours(12).toJavaDuration())
             .executor(Dispatchers.IO.asExecutor())
-            .buildAsync<String, String> { key ->
+            .buildAsync { key ->
                 mapper.writeValueAsString(
                     transaction(database) {
                         BlockedUser.find {
@@ -108,7 +97,6 @@ class AmIBlockedServer {
             }
     }
 
-    @KtorExperimentalAPI
     fun startServer() {
         val server = embeddedServer(CIO, configuration.port, configuration.host) {
             install(CallLogging)
@@ -120,7 +108,12 @@ class AmIBlockedServer {
             install(CachingHeaders) {
                 options { outgoingContent ->
                     when (outgoingContent.contentType?.withoutParameters()) {
-                        ContentType.Application.Json -> CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 1.days.inSeconds.toInt()))
+                        ContentType.Application.Json -> CachingOptions(
+                            CacheControl.MaxAge(
+                                maxAgeSeconds = Duration.days(1)
+                                    .inWholeSeconds.toInt()
+                            )
+                        )
                         else -> null
                     }
                 }

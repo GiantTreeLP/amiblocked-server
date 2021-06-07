@@ -1,7 +1,7 @@
 plugins {
     java
     application
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.5.10"
 }
 
 group = "org.example"
@@ -9,11 +9,10 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 application {
-    mainClassName = "de.gianttree.amiblocked.AmIBlockedServerKt"
+    mainClass.set("de.gianttree.amiblocked.AmIBlockedServerKt")
 }
 
 dependencies {
@@ -21,7 +20,7 @@ dependencies {
     val ktorVersion = "1.6.0"
     val exposedVersion = "0.32.1"
     val slf4jVersion = "1.7.30"
-    val mariadbVersion = "2.7.3"
+    val mariadbVersion = "2.7.2"
     val hikaricpVersion = "4.0.3"
     val caffeineVersion = "3.0.2"
 
@@ -56,7 +55,7 @@ tasks {
         manifest {
             attributes(
                 mapOf(
-                    "Main-Class" to application.mainClassName
+                    "Main-Class" to application.mainClass
                 )
             )
         }
