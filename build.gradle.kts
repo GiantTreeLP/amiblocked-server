@@ -18,7 +18,7 @@ application {
 dependencies {
 
     val ktorVersion = "1.6.3"
-    val exposedVersion = "0.33.1"
+    val exposedVersion = "0.34.1"
     val slf4jVersion = "1.7.32"
     val mariadbVersion = "2.7.4"
     val hikaricpVersion = "5.0.0"
