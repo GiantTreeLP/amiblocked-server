@@ -1,5 +1,8 @@
 package de.gianttree.amiblocked
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Configuration(
     val host: String,
     val port: Int,
@@ -16,6 +19,7 @@ data class Configuration(
     }
 }
 
+@Serializable
 data class DatabaseConfiguration(
     val jdbcUrl: String,
     val driver: String,
@@ -32,6 +36,7 @@ data class DatabaseConfiguration(
     }
 }
 
+@Serializable
 data class CorsConfiguration(
     val host: String,
     val schemes: List<String>

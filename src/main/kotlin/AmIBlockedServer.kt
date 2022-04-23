@@ -1,24 +1,30 @@
 package de.gianttree.amiblocked
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.ContentType.Application
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.request.ContentTransformationException
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.plugins.cachingheaders.*
+import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.future.await
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.mapLazy
@@ -27,20 +33,27 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.time.Duration
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 import kotlin.time.toJavaDuration
 
-
-val mapper: ObjectMapper = jacksonObjectMapper()
+val mapper = Json
+val prettyMapper = Json(from = mapper) {
+    prettyPrint = true
+}
 
 val configPath: Path = Paths.get("config.json")
 
+@ExperimentalSerializationApi
 @ExperimentalTime
 fun main() {
     AmIBlockedServer().apply { startServer() }
 }
 
+@ExperimentalSerializationApi
 @ExperimentalTime
 class AmIBlockedServer {
 
@@ -52,11 +65,17 @@ class AmIBlockedServer {
 
     private fun loadConfiguration(): Configuration {
         return if (Files.exists(configPath)) {
-            mapper.readValue(configPath.toFile().readBytes(), Configuration::class.java)
+            val inputStream = configPath.inputStream()
+            inputStream.use {
+                mapper.decodeFromStream(inputStream)
+            }
         } else {
             Configuration.default()
         }.also {
-            mapper.writerWithDefaultPrettyPrinter().writeValue(configPath.toFile(), it)
+            val outputStream = configPath.outputStream()
+            outputStream.use { stream ->
+                prettyMapper.encodeToStream(it, stream)
+            }
         }
     }
 
@@ -80,10 +99,10 @@ class AmIBlockedServer {
     private fun createCache(): AsyncLoadingCache<String, String> {
         return Caffeine.newBuilder()
             .maximumSize(1000)
-            .expireAfterWrite(Duration.hours(12).toJavaDuration())
+            .expireAfterWrite(12.hours.toJavaDuration())
             .executor(Dispatchers.IO.asExecutor())
             .buildAsync { key ->
-                mapper.writeValueAsString(
+                mapper.encodeToString(
                     transaction(database) {
                         BlockedUser.find {
                             (BlockedUsers.username eq key) or                       // Full match
@@ -99,19 +118,19 @@ class AmIBlockedServer {
 
     fun startServer() {
         val server = embeddedServer(CIO, configuration.port, configuration.host) {
+            install(ContentNegotiation)
             install(CallLogging)
             install(CORS) {
                 configuration.cors.forEach {
-                    host(it.host, it.schemes)
+                    allowHost(it.host, it.schemes)
                 }
             }
             install(CachingHeaders) {
-                options { outgoingContent ->
+                options { _, outgoingContent ->
                     when (outgoingContent.contentType?.withoutParameters()) {
-                        ContentType.Application.Json -> CachingOptions(
+                        Application.Json -> CachingOptions(
                             CacheControl.MaxAge(
-                                maxAgeSeconds = Duration.days(1)
-                                    .inWholeSeconds.toInt()
+                                maxAgeSeconds = 1.days.inWholeSeconds.toInt()
                             )
                         )
                         else -> null
@@ -126,14 +145,14 @@ class AmIBlockedServer {
                         parametersOf()
                     }
                     if ("search" !in params) {
-                        this.call.respond(HttpStatusCode.BadRequest, "")
+                        this.call.respond(HttpStatusCode.BadRequest)
                         return@post
                     }
                     val searchParam = params["search"]!!.trim()
 
                     val response = queryCache[searchParam]
 
-                    this.call.respondText(response.await(), ContentType.Application.Json)
+                    this.call.respondText(response.await(), Application.Json)
                 }
             }
         }

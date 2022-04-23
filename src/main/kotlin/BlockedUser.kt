@@ -1,11 +1,12 @@
 package de.gianttree.amiblocked
 
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
-
+@Serializable
 class BlockedUserDTO(
     val username: String,
     val snowflake: String,

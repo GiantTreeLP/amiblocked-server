@@ -2,6 +2,7 @@ plugins {
     java
     application
     kotlin("jvm") version "1.6.21"
+    kotlin("plugin.serialization") version "1.6.21"
 }
 
 group = "org.example"
@@ -17,7 +18,8 @@ application {
 
 dependencies {
 
-    val ktorVersion = "1.6.8"
+    val ktorVersion = "2.0.0"
+    val kotlinxSerializationVersion = "1.3.2"
     val exposedVersion = "0.38.2"
     val slf4jVersion = "1.7.36"
     val mariadbVersion = "3.0.4"
@@ -27,8 +29,14 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
+    implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", kotlinxSerializationVersion)
+
     implementation("io.ktor", "ktor-server-cio", ktorVersion)
-    implementation("io.ktor", "ktor-jackson", ktorVersion)
+    implementation("io.ktor", "ktor-server-content-negotiation", ktorVersion)
+    implementation("io.ktor", "ktor-serialization-kotlinx-json", ktorVersion)
+    implementation("io.ktor", "ktor-server-call-logging", ktorVersion)
+    implementation("io.ktor", "ktor-server-cors", ktorVersion)
+    implementation("io.ktor", "ktor-server-caching-headers", ktorVersion)
 
     implementation("org.jetbrains.exposed", "exposed-core", exposedVersion)
     implementation("org.jetbrains.exposed", "exposed-dao", exposedVersion)
@@ -40,16 +48,12 @@ dependencies {
     implementation("com.github.ben-manes.caffeine", "caffeine", caffeineVersion)
 }
 
-configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-}
-
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "17"
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "17"
     }
     withType<Jar> {
         manifest {
