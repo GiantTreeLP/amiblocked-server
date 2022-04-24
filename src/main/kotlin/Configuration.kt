@@ -28,7 +28,7 @@ data class DatabaseConfiguration(
 ) {
     companion object {
         fun default() = DatabaseConfiguration(
-            "jdbc:mysql://localhost:3006/amiblocked",
+            "jdbc:mariadb://localhost:3006/amiblocked",
             "org.mariadb.jdbc.Driver",
             "root",
             ""
