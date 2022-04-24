@@ -6,10 +6,10 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.http.ContentType.Application
-import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -33,6 +33,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.ZonedDateTime
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 import kotlin.time.Duration.Companion.days
@@ -129,9 +130,10 @@ class AmIBlockedServer {
                 options { _, outgoingContent ->
                     when (outgoingContent.contentType?.withoutParameters()) {
                         Application.Json -> CachingOptions(
-                            CacheControl.MaxAge(
+                            cacheControl = CacheControl.MaxAge(
                                 maxAgeSeconds = 1.days.inWholeSeconds.toInt()
-                            )
+                            ),
+                            expires = ZonedDateTime.now().plusDays(1)
                         )
                         else -> null
                     }
