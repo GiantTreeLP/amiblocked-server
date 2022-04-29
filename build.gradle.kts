@@ -18,7 +18,7 @@ application {
 
 dependencies {
 
-    val ktorVersion = "2.0.0"
+    val ktorVersion = "2.0.1"
     val kotlinxSerializationVersion = "1.3.2"
     val exposedVersion = "0.38.2"
     val slf4jVersion = "1.7.36"
