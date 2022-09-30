@@ -1,8 +1,10 @@
 plugins {
+    val kotlinVersion = "1.7.20"
+
     java
     application
-    kotlin("jvm") version "1.7.10"
-    kotlin("plugin.serialization") version "1.7.10"
+    kotlin("jvm") version kotlinVersion
+    kotlin("plugin.serialization") version kotlinVersion
 }
 
 group = "org.example"

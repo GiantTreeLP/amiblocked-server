@@ -13,7 +13,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.plugins.cachingheaders.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -135,6 +135,7 @@ class AmIBlockedServer {
                             ),
                             expires = ZonedDateTime.now().plusDays(1)
                         )
+
                         else -> null
                     }
                 }
