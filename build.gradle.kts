@@ -26,7 +26,7 @@ dependencies {
     val slf4jVersion = "2.0.4"
     val mariadbVersion = "3.1.0"
     val hikaricpVersion = "5.0.1"
-    val caffeineVersion = "3.1.1"
+    val caffeineVersion = "3.1.2"
 
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
