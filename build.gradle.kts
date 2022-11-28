@@ -1,5 +1,5 @@
 plugins {
-    val kotlinVersion = "1.7.21"
+    val kotlinVersion = "1.7.22"
 
     java
     application
