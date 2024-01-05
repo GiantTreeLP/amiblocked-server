@@ -22,7 +22,7 @@ dependencies {
 
     val ktorVersion = "2.3.7"
     val kotlinxSerializationVersion = "1.6.2"
-    val exposedVersion = "0.45.0"
+    val exposedVersion = "0.46.0"
     val slf4jVersion = "2.0.10"
     val mariadbVersion = "3.3.2"
     val hikaricpVersion = "5.1.0"
