@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     val kotlinVersion = "2.0.21"
 
@@ -20,7 +23,7 @@ application {
 
 dependencies {
 
-    val ktorVersion = "2.3.12"
+    val ktorVersion = "3.0.0"
     val kotlinxSerializationVersion = "1.7.3"
     val exposedVersion = "0.55.0"
     val slf4jVersion = "2.0.16"
@@ -50,20 +53,12 @@ dependencies {
     implementation("com.github.ben-manes.caffeine", "caffeine", caffeineVersion)
 }
 
-tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "17"
-    }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "17"
-    }
-    withType<Jar> {
-        manifest {
-            attributes(
-                mapOf(
-                    "Main-Class" to application.mainClass
-                )
-            )
-        }
+tasks.withType<JavaCompile>() {
+    targetCompatibility = JavaVersion.VERSION_21.toString()
+}
+
+tasks.withType<KotlinCompile>() {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
     }
 }

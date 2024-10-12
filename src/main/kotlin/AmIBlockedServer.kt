@@ -11,7 +11,7 @@ import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.plugins.cachingheaders.*
-import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
@@ -38,7 +38,6 @@ import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.ExperimentalTime
 import kotlin.time.toJavaDuration
 
 val mapper = Json
@@ -49,13 +48,11 @@ val prettyMapper = Json(from = mapper) {
 val configPath: Path = Paths.get("config.json")
 
 @ExperimentalSerializationApi
-@ExperimentalTime
 fun main() {
     AmIBlockedServer().apply { startServer() }
 }
 
 @ExperimentalSerializationApi
-@ExperimentalTime
 class AmIBlockedServer {
 
     private val configuration = loadConfiguration()
@@ -144,7 +141,7 @@ class AmIBlockedServer {
                 post("/api/v1/find") {
                     val params = try {
                         this.call.receiveParameters()
-                    } catch (e: ContentTransformationException) {
+                    } catch (_: ContentTransformationException) {
                         parametersOf()
                     }
                     if ("search" !in params) {
