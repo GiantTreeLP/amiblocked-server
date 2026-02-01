@@ -25,7 +25,7 @@ dependencies {
 
     val ktorVersion = "3.4.0"
     val kotlinxSerializationVersion = "1.10.0"
-    val exposedVersion = "0.61.0"
+    val exposedVersion = "1.0.0"
     val slf4jVersion = "2.0.17"
     val mariadbVersion = "3.5.7"
     val hikaricpVersion = "7.0.2"
@@ -46,6 +46,8 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-core", exposedVersion)
     implementation("org.jetbrains.exposed", "exposed-dao", exposedVersion)
     implementation("org.jetbrains.exposed", "exposed-jdbc", exposedVersion)
+    implementation("org.jetbrains.exposed", "exposed-migration-core", exposedVersion)
+    implementation("org.jetbrains.exposed", "exposed-migration-jdbc", exposedVersion)
 
     implementation("org.slf4j", "slf4j-simple", slf4jVersion)
     implementation("org.mariadb.jdbc", "mariadb-java-client", mariadbVersion)
